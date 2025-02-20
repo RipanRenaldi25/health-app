@@ -559,13 +559,14 @@ model UKSActivityAssigned {
 }
 
 model RequestIntervention {
-  id               Int      @id @default(autoincrement()) @db.Int
-  puskesmas_id     Int      @db.Int
-  created_at       DateTime @default(now()) @db.Timestamp(2)
-  updated_at       DateTime @default(now()) @db.Timestamp(2)
-  created_by       Int      @db.Int
-  family_member_id Int      @db.Int
-  information      String?  @db.Text
+  id                   Int      @id @default(autoincrement()) @db.Int
+  puskesmas_id         Int      @db.Int
+  created_at           DateTime @default(now()) @db.Timestamp(2)
+  updated_at           DateTime @default(now()) @db.Timestamp(2)
+  created_by           Int      @db.Int
+  family_member_id     Int      @db.Int
+  information          String?  @db.Text
+  request_document_url String?  @db.Text
 
   family_member FamilyMember  @relation(fields: [family_member_id], references: [id])
   institution   Institution   @relation(fields: [puskesmas_id], references: [id])
@@ -583,6 +584,7 @@ model Intervention {
   created_at              DateTime @default(now()) @db.Timestamp(2)
   updated_at              DateTime @default(now()) @db.Timestamp(2)
   puskesmas_id            Int      @db.Int
+  intervention_document   String?  @db.Text
 
   user                 User                @relation(fields: [created_by], references: [id])
   institution          Institution         @relation(fields: [puskesmas_id], references: [id])
