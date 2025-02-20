@@ -264,6 +264,8 @@ model FamilyMember {
   institution_id         Int?      @db.Int
   phone_number           String?   @db.VarChar(255)
   class                  String?   @db.VarChar(255)
+  class_name             String?   @db.VarChar(30)
+  avatar                 String?   @db.VarChar(255)
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
