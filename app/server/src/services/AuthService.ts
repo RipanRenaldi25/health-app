@@ -11,7 +11,7 @@ export class AuthService {
     constructor(public prismaClient: PrismaClient, public bcrypt: any, public jwt: any, public emailService: EmailService) { }
 
     async register({
-        username, email, password, roleId = 4, isVerified = false
+        username, email, password, roleId = 4, isVerified = false, avatar
     }: RegisterPayloadType): Promise<{
         newUser: {
             id: number;
@@ -36,7 +36,8 @@ export class AuthService {
                 email,
                 password: newPassword,
                 role_id: roleId,
-                is_verified: roleId === 4 ? true : isVerified
+                is_verified: roleId === 4 ? true : isVerified,
+                avatar
             },
         });
 
@@ -67,6 +68,7 @@ export class AuthService {
                 password: newPassword,
                 role_id: payload.roleId,
                 is_verified: true,
+                avatar: payload.avatar,
                 institution: {
                     create: {
                         name: payload.name,
@@ -278,7 +280,8 @@ export class AuthService {
             email: decodedToken.email,
             password: payload.password,
             roleId: 5,
-            isVerified: true
+            isVerified: true,
+            avatar: payload.avatar
         });
         const newHealthCaremember = await this.prismaClient.healthCareMember.create({
             data: {
@@ -303,6 +306,68 @@ export class AuthService {
 
         return {
             healthCareMember: newHealthCaremember
+        }
+    }
+
+    async updateUserById(userId: number, data: Partial<RegisterPayloadType>) {
+        const { user } = await this.getUserById(userId);
+        if (!user) {
+            throw new NotFoundError(`User with ID ${userId} is not found`);
+        }
+
+        if ((user.email !== data.email) && !!data.email) {
+            await this.checkUniqueIdentityToUpdate(data.email);
+        }
+
+        if (!!data.username && (user.username !== data.username)) {
+            await this.checkUniqueIdentityToUpdate(data.username);
+        };
+        let newPassword = data.password;
+        if (data.password && (user.password !== data.password)) {
+            newPassword = await this.bcrypt.hash(data.password, 10);
+        }
+
+        const updatedUser = await this.prismaClient.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                username: data.username,
+                email: data.email,
+                password: newPassword,
+                avatar: data.avatar
+            }
+        });
+
+        return {
+            user: updatedUser
+        }
+    }
+
+    async getUserById(userId: number) {
+        const user = await this.prismaClient.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+
+        return {
+            user
+        }
+    }
+
+    async checkUniqueIdentityToUpdate(uniqueIdentity: string) {
+        const user = await this.prismaClient.user.findFirst({
+            where: {
+                OR: [
+                    { username: uniqueIdentity },
+                    { email: uniqueIdentity }
+                ]
+            }
+        });
+
+        if (user) {
+            throw new InvariantError(`Identity ${uniqueIdentity} is exists`);
         }
     }
 }

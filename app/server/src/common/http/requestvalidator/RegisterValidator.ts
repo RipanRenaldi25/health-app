@@ -9,7 +9,8 @@ export const registerPayloadSchema = joi.object({
             return helpers.error('Role must be 1, 2, 3, or 4');
         }
         return value;
-    })
+    }),
+    avatar: joi.string()
 })
 
 export const institutionRegisterPayloadSchema = joi.object({

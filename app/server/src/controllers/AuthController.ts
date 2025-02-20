@@ -1,6 +1,6 @@
 
 import { Request, Response } from "express";
-import { PayloadError } from "../common/exception";
+import { InvariantError, PayloadError } from "../common/exception";
 import { handleError, institutionRegisterPayloadSchema, registerPayloadSchema, validatePayload, verifyEmailSchema } from "../common/http";
 import { CompleteRegistrationSchema } from '../common/http/requestvalidator/CompleteRegistrationValidator';
 import { AuthService } from "../services";
@@ -14,7 +14,7 @@ export class AuthController {
         try {
             validatePayload(registerPayloadSchema, req.body);
             const { username, password, email, role } = req.body;
-            const { newUser } = await this.authService.register({ username, email, password, roleId: role, isVerified: false });
+            const { newUser } = await this.authService.register({ username, email, password, roleId: role, isVerified: false, avatar: req.file?.filename ?? null });
 
             res.status(201).json({
                 status: 'Success',
@@ -30,7 +30,8 @@ export class AuthController {
         try {
             validatePayload(registerPayloadSchema, req.body);
             const { username, password, email } = req.body;
-            const { newUser } = await this.authService.register({ username, email, password, roleId: 4, isVerified: true });
+            console.log({ file: req.file });
+            const { newUser } = await this.authService.register({ username, email, password, roleId: 4, isVerified: true, avatar: req.file?.filename ?? null });
 
             res.status(201).json({
                 status: 'Success',
@@ -51,7 +52,7 @@ export class AuthController {
             } = req.body;
             console.log(req.body);
 
-            const { userInstitution } = await this.authService.registerForInstitution({ username, email, password, roleId: +roleId, address, headNIP, headName, name, phoneNumber });
+            const { userInstitution } = await this.authService.registerForInstitution({ username, email, password, roleId: +roleId, address, headNIP, headName, name, phoneNumber, avatar: req.file?.filename ?? null });
 
 
             res.status(201).json({
@@ -159,6 +160,31 @@ export class AuthController {
                 status: 'Success',
                 message: `User Registered Successfully as Health Care Member`,
                 data: healthCareMember
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateUserById(req: Request, res: Response) {
+        try {
+            const { userId } = req.params;
+            if (!userId) {
+                throw new InvariantError(`user id is required in params`);
+            }
+            const { username, email, password } = req.body;
+            const avatar = req.file?.filename
+            const { user } = await this.authService.updateUserById(+userId, {
+                username,
+                email,
+                password,
+                avatar
+            });
+
+            res.status(200).json({
+                status: 'Success',
+                message: `User with id ${userId} is updated`,
+                data: user
             })
         } catch (err: any) {
             handleError(err, res);

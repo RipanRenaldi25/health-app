@@ -1,5 +1,5 @@
 export interface RegisterPayloadType {
-    username: string, email: string, password: string, roleId: number, isVerified: boolean
+    username: string, email: string, password: string, roleId: number, isVerified: boolean, avatar: string?;
 }
 
 export interface IInstitution {

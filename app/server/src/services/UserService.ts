@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { AuthorizationError, NotFoundError } from "../common/exception";
+import { RegisterPayloadType } from "../types/auth";
 
 export class UserService {
     constructor(public prismaClient: PrismaClient) {
