@@ -20,7 +20,8 @@ export class InterventionService {
                 puskesmas_id: payload.institutionId,
                 created_by: payload.createdBy,
                 family_member_id: payload.familyId,
-                information: payload.information
+                information: payload.information,
+                request_document_url: payload.request_document_url
             },
             include: {
                 institution: true,
@@ -43,6 +44,7 @@ export class InterventionService {
                 request_intervention_id: payload.requestInterventionId,
                 puskesmas_id: payload.puskesmasId,
                 created_by: payload.createdBy,
+                intervention_document: payload.interventionDocumentUrl
             },
             include: {
                 institution: true,

@@ -3,13 +3,14 @@ import { AuthorizationMiddleware } from '../middlewares/AuthorizationMiddleware'
 import { InterventionService } from '../services/InterventionService';
 import { InterventionController } from '../controllers/InterventionController';
 import { prismaDBClient } from '../../config/prisma';
+import { multerMiddleware } from '../middlewares/MulterMiddleware';
 
 const interventionService = new InterventionService(prismaDBClient);
 const interventionController = new InterventionController(interventionService);
 
 export const interventionRouter = express.Router();
 
-interventionRouter.post('/requests/:puskesmasId/members/:memberId', AuthorizationMiddleware(['admin', 'healthcare', 'school', 'uks']), async (req: Request, res: Response) => {
+interventionRouter.post('/requests/:puskesmasId/members/:memberId', multerMiddleware.single('document'), AuthorizationMiddleware(['admin', 'healthcare', 'school', 'uks']), async (req: Request, res: Response) => {
     interventionController.requestIntervention(req, res);
 })
 
@@ -38,7 +39,7 @@ interventionRouter.put('/requests/:requestId/puskesmas/:puskesmasId/members/:mem
 })
 
 // Intervention
-interventionRouter.post('/puskesmas/:puskesmasId/requests/:requestInterventionId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+interventionRouter.post('/puskesmas/:puskesmasId/requests/:requestInterventionId', multerMiddleware.single('document'), AuthorizationMiddleware([]), async (req: Request, res: Response) => {
     interventionController.createIntervention(req, res);
 })
 

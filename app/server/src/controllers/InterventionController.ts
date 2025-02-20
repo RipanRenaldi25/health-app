@@ -11,18 +11,20 @@ export class InterventionController {
 
     async requestIntervention(req: Request, res: Response) {
         try {
-            validatePayload(requestInterventionSchema, req.body);
+            // validatePayload(requestInterventionSchema, req.body);
             const { puskesmasId, memberId } = req.params;
             if (!puskesmasId || !memberId) {
                 throw new InvariantError("Puskesmas ID and  Member ID must be provided");
             }
+            console.log({ payload: req.body, file: req.file });
             const { information } = req.body;
             const user = (req as any).user
             const { intervention } = await this.interventionService.requestIntervention({
                 createdBy: user.id,
                 familyId: +memberId,
                 institutionId: +puskesmasId,
-                information
+                information,
+                request_document_url: req.file?.filename ?? null
             })
             res.status(201).json({
                 status: 'Success',
@@ -134,7 +136,8 @@ export class InterventionController {
                 institutionId: +puskesmasId,
                 familyId: +memberId,
                 createdBy: user.id,
-                information
+                information,
+                request_document_url: req.file?.filename ?? null
             });
             res.status(200).json({
                 status: 'Success',
@@ -148,7 +151,7 @@ export class InterventionController {
 
     async createIntervention(req: Request, res: Response) {
         try {
-            validatePayload(createInterventionSchema, req.body);
+            // validatePayload(createInterventionSchema, req.body);
             const { requestInterventionId, puskesmasId } = req.params;
             if (!requestInterventionId || !puskesmasId) {
                 throw new InvariantError('Request Intervention ID and Puskesmas ID must be provided in params');
@@ -160,7 +163,8 @@ export class InterventionController {
                 createdBy: user.id,
                 requestInterventionId: +requestInterventionId,
                 puskesmasId: +puskesmasId,
-                recommendation
+                recommendation,
+                interventionDocumentUrl: req.file?.filename ?? null
             })
 
             res.status(201).json({
