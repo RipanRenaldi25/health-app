@@ -113,9 +113,9 @@ export class QuisionerService {
                     },
                 },
                 response: {
-                  include: {
-                    answers: true
-                  }
+                    include: {
+                        answers: true
+                    }
                 }
             }
         });
@@ -590,6 +590,21 @@ export class QuisionerService {
         return {
             responses,
             count: responseCount
+        }
+    }
+
+    async getQuisionerCategories() {
+        const quisioners = await this.prismaClient.quisioner.findMany({
+        });
+        const categories = new Map();
+        for (const quisioner of quisioners) {
+            if (categories.has(quisioner.title)) {
+                continue;
+            }
+            categories.set(quisioner.title, quisioner.title);
+        };
+        return {
+            categories: Array.from(categories.values())
         }
     }
 }
