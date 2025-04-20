@@ -1,10 +1,11 @@
 import joi from "joi";
+import { roles } from "../../../services/SeedService";
 
 export const registerPayloadSchema = joi.object({
   username: joi.string().min(3).required(),
   email: joi.string().email().required(),
   password: joi.string().min(6).required(),
-  role: joi.number().min(2).max(6),
+  role: joi.number().min(1).max(roles.length),
   isVerified: joi.boolean(),
   institutionId: joi.number(),
 });

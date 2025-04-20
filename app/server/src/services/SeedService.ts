@@ -2,6 +2,36 @@ import { PrismaClient, QUESTIONTYPE } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { seedQuisionerQuestions } from "./Seed";
 import { schoolQuisionerQuestions } from "./Seed/SchoolQuisioner";
+export const roles = [
+  {
+    id: 1,
+    name: "admin",
+  },
+  {
+    id: 2,
+    name: "school",
+  },
+  {
+    id: 3,
+    name: "healthcare",
+  },
+  {
+    id: 4,
+    name: "parent",
+  },
+  {
+    id: 5,
+    name: "uks",
+  },
+  {
+    id: 6,
+    name: "teacher",
+  },
+  {
+    id: 7,
+    name: "staff-puskesmas",
+  },
+];
 
 export class SeedService {
   constructor(public prismaClient: PrismaClient) {}
@@ -25,32 +55,7 @@ export class SeedService {
     const isRoleExist = await this.prismaClient.role.findMany();
     if (isRoleExist.length === 0) {
       await this.prismaClient.role.createMany({
-        data: [
-          {
-            id: 1,
-            name: "admin",
-          },
-          {
-            id: 2,
-            name: "school",
-          },
-          {
-            id: 3,
-            name: "healthcare",
-          },
-          {
-            id: 4,
-            name: "parent",
-          },
-          {
-            id: 5,
-            name: "uks",
-          },
-          {
-            id: 6,
-            name: "teacher",
-          },
-        ],
+        data: roles,
       });
     }
     console.log("Role seeded");
