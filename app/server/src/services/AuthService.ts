@@ -1,5 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { InvariantError, NotFoundError } from "../common/exception";
+import {
+  AuthorizationError,
+  InvariantError,
+  NotFoundError,
+} from "../common/exception";
 import {
   IInstitution,
   IPayloadToken,
@@ -146,6 +150,73 @@ export class AuthService {
     return {
       userInstitution,
     };
+  }
+
+  async registerForTeacher({
+    username,
+    email,
+    password,
+    schoolId,
+    name,
+    avatar,
+  }: {
+    username: string;
+    email: string;
+    password: string;
+    schoolId: number;
+    name: string;
+    avatar?: string;
+  }) {
+    const school = await this.prismaClient.institution.findUnique({
+      where: {
+        id: schoolId,
+        type: 1,
+      },
+    });
+
+    if (!school) {
+      throw new NotFoundError(`School with id ${schoolId} is not found`);
+    }
+    const teacher = await this.prismaClient.$transaction(async (trx) => {
+      const isUserExist = await trx.user.findFirst({
+        where: {
+          OR: [
+            {
+              username,
+            },
+            {
+              email,
+            },
+          ],
+        },
+      });
+      if (isUserExist) {
+        throw new AuthorizationError("User is already exists");
+      }
+      const user = await trx.user.create({
+        data: {
+          username,
+          email,
+          password,
+          role_id: 6,
+          is_verified: true,
+        },
+      });
+
+      const teacher = await trx.teacher.create({
+        data: {
+          name,
+          avatar,
+          user_id: user.id,
+          school_id: schoolId,
+        },
+        include: {
+          user: true,
+        },
+      });
+      return teacher;
+    });
+    return { teacher };
   }
 
   async sendEmailVerification(email: string) {

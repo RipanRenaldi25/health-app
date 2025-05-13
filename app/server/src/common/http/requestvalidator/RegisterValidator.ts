@@ -34,3 +34,10 @@ export const updateUserSchema = joi.object({
   isVerified: joi.boolean().required(),
   roleId: joi.number(),
 });
+
+export const registerTeacherSchema = joi.object({
+  username: joi.string().required(),
+  email: joi.string().email().required(),
+  password: joi.string().required(),
+  name: joi.string().required(),
+});

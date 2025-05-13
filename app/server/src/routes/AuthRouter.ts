@@ -30,6 +30,15 @@ authRouter.post("/register/parent", async (req, res) => {
   await authController.registerForParent(req, res);
 });
 
+authRouter.post(
+  "/register/teacher/schools/:schoolId",
+  AuthorizationMiddleware([]),
+  multerMiddleware.single("avatar"),
+  async (req, res) => {
+    authController.registerForTeacher(req, res);
+  }
+);
+
 authRouter.post("/login", async (req, res) => {
   await authController.login(req, res);
 });

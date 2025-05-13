@@ -10,6 +10,7 @@ import {
 import { CompleteRegistrationSchema } from "../common/http/requestvalidator/CompleteRegistrationValidator";
 import { AuthService } from "../services";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { registerTeacherSchema } from "../common/http/requestvalidator/RegisterValidator";
 
 export class AuthController {
   constructor(public authService: AuthService) {}
@@ -56,6 +57,34 @@ export class AuthController {
         status: "Success",
         message: "User Registered Successfully",
         data: newUser,
+      });
+    } catch (error: any) {
+      handleError(error, res);
+    }
+  }
+
+  async registerForTeacher(req: Request, res: Response) {
+    try {
+      const { schoolId } = req.params;
+      if (!schoolId) {
+        throw new InvariantError("schoolId is required in params");
+      }
+      validatePayload(registerTeacherSchema, req.body);
+      const { username, password, email, name } = req.body;
+      const file = req.file;
+      const { teacher } = await this.authService.registerForTeacher({
+        username,
+        email,
+        password,
+        schoolId: +schoolId,
+        name,
+        avatar: file?.originalname ?? undefined,
+      });
+
+      res.status(201).json({
+        status: "Success",
+        message: "User Registered Successfully",
+        data: teacher,
       });
     } catch (error: any) {
       handleError(error, res);
