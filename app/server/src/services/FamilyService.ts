@@ -1165,6 +1165,14 @@ export class FamilyService {
         },
       },
     });
-    return { member };
+    return {
+      member: {
+        ...member,
+        job: {
+          ...member?.job,
+          income: member?.job.income.toString(),
+        },
+      },
+    };
   }
 }

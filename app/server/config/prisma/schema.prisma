@@ -474,6 +474,8 @@ model Article {
   banner_url    String? @db.VarChar(255)
   Content       String  @db.LongText
   thumbnail_url String? @db.VarChar(255)
+  created_at DateTime @db.Timestamp(2) @default(now())
+  updated_at DateTime @db.Timestamp(2) @default(now())
 
   kie_content KIEContent @relation(fields: [id], references: [id], onDelete: Cascade)
 
@@ -702,7 +704,7 @@ model Response {
 
 model Answer {
   id            Int      @id @default(autoincrement()) @db.Int
-  question_id   Int      @unique() @db.Int
+  question_id   Int      @db.Int
   response_id   Int      @db.Int
   score         Int?     @default(0) @db.Int
   boolean_value Boolean?
