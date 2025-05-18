@@ -598,6 +598,11 @@ model UKSActivityAssigned {
   @@map("activity_assigneds")
 }
 
+enum REQUESTSTATUS {
+  PENDING
+  COMPLETED
+}
+
 model RequestIntervention {
   id               Int      @id @default(autoincrement()) @db.Int
   puskesmas_id     Int      @db.Int
@@ -606,6 +611,7 @@ model RequestIntervention {
   created_by       Int      @db.Int
   family_member_id Int      @db.Int
   information      String?  @db.Text
+  status REQUESTSTATUS @default(PENDING)
 
   family_member FamilyMember  @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
   institution   Institution   @relation(fields: [puskesmas_id], references: [id])
@@ -617,7 +623,7 @@ model RequestIntervention {
 
 model Intervention {
   id                      Int      @id @default(autoincrement()) @db.Int
-  recommendation          String   @db.Text
+  recommendation          String   @db.LongText
   request_intervention_id Int      @unique @db.Int
   created_by              Int      @db.Int
   created_at              DateTime @default(now()) @db.Timestamp(2)

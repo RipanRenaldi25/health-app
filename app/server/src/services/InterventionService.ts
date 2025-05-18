@@ -293,7 +293,7 @@ export class InterventionService {
   }
 
   // GET WITH JWT
-  async getRequestBelongToHealthcare(userId: number) {
+  async getRequestBelongToHealthcare(userId: number, query: {}) {
     const staff = await this.prismaClient.staff.findUnique({
       where: {
         user_id: userId,
