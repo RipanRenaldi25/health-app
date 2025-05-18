@@ -1,4 +1,4 @@
-import { PrismaClient, REQUESTSTATUS } from "@prisma/client";
+import { Prisma, PrismaClient, REQUESTSTATUS } from "@prisma/client";
 import { NotFoundError } from "../common/exception";
 import { IIntervention, IRequestIntervention } from "../types/puskesmas";
 
@@ -390,5 +390,59 @@ export class InterventionService {
     if (!user) {
       throw new NotFoundError("User not found");
     }
+    const requestedSchool =
+      await this.prismaClient.requestIntervention.findMany({
+        distinct: "school_id",
+      });
+    const schoolIds = requestedSchool
+      .map((request) => request.school_id)
+      .filter(Boolean);
+
+    const nutritions: any[] = await this.prismaClient.$queryRaw`
+      SELECT n.status_id, CASE
+      WHEN n.status_id = 1 THEN "Kekurangan Gizi Tingkat Berat"
+      WHEN n.status_id = 2 THEN "Kekurangan Gizi Tingkat Ringan"
+      WHEN n.status_id = 3 THEN "Gizi Normal"
+      WHEN n.status_id = 4 THEN "Beresiko Kelebihan Gizi Tingkat Ringan"
+      WHEN n.status_id = 5 THEN "Beresiko Kelebihan Gizi Tingkat Berat"
+      ELSE "Tidak Diketahui"
+      END AS "nutrition_status",
+      COUNT(n.id) as total
+      FROM nutritions as n
+      JOIN family_members fm ON n.family_member_id = fm.id
+      JOIN institutions i ON fm.institution_id = i.id
+      JOIN families f ON fm.family_id = f.id
+      JOIN users u ON f.user_id = u.id
+      WHERE i.id IN (${Prisma.join(schoolIds)})
+      GROUP BY n.status_id
+      `;
+
+    //     const nutritions = await this.prismaClient.$queryRawUnsafe(`
+    //   SELECT
+    //     n.status_id,
+    //     CASE
+    //       WHEN n.status_id = 1 THEN 'Kekurangan Gizi Tingkat Berat'
+    //       WHEN n.status_id = 2 THEN 'Kekurangan Gizi Tingkat Ringan'
+    //       WHEN n.status_id = 3 THEN 'Gizi Normal'
+    //       WHEN n.status_id = 4 THEN 'Beresiko Kelebihan Gizi Tingkat Ringan'
+    //       WHEN n.status_id = 5 THEN 'Beresiko Kelebihan Gizi Tingkat Berat'
+    //       ELSE 'Tidak Diketahui'
+    //     END AS nutrition_status,
+    //     COUNT(*) AS total
+    //   FROM nutritions n
+    //   JOIN family_members fm ON n.family_member_id = fm.id
+    //   JOIN institutions i ON fm.institution_id = i.id
+    //   JOIN families f ON fm.family_id = f.id
+    //   JOIN users u ON f.user_id = u.id
+    //   WHERE i.id IN (${Prisma.join(schoolIds)})
+    //   GROUP BY n.status_id;
+    // `);
+
+    return {
+      nutritions: nutritions.map((nutrition) => ({
+        ...nutrition,
+        total: +nutrition.total.toString(),
+      })),
+    };
   }
 }

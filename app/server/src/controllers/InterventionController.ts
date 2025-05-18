@@ -325,4 +325,19 @@ export class InterventionController {
       handleError(err, res);
     }
   }
+
+  async getSchoolNutritionSummary(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const { nutritions } =
+        await this.interventionService.getSchoolNutritionSummary(user.id);
+      res.status(200).json({
+        status: "Success",
+        message: "Nutrition summary fetched",
+        data: nutritions,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
 }

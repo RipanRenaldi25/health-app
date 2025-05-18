@@ -123,3 +123,11 @@ interventionRouter.get(
     interventionController.getRequestSummaryBelongToHeallthCare(req, res);
   }
 );
+
+interventionRouter.get(
+  "/statistics/nutritions/summary",
+  AuthorizationMiddleware(["staff-puskesmas", "healthcare"]),
+  (req: Request, res: Response) => {
+    interventionController.getSchoolNutritionSummary(req, res);
+  }
+);
