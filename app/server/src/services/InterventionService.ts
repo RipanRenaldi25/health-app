@@ -342,9 +342,12 @@ export class InterventionService {
         },
         include: {
           family_member: true,
+          institution: true,
           user: {
             include: {
-              institution: true,
+              teacher: {
+                include: { institution: true },
+              },
             },
           },
         },
