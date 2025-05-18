@@ -288,17 +288,26 @@ export class InterventionController {
   async getRequestBelongToHealthcare(req: Request, res: Response) {
     try {
       const user = (req as any).user;
-      const { startDate, endDate, status } = req.query;
-      const { requests } =
-        await this.interventionService.getRequestBelongToHealthcare(user.id, {
-          startDate: startDate as string,
-          endDate: endDate as string,
-          status: status as REQUESTSTATUS,
-        });
+      const { startDate, endDate, status, page, show } = req.query;
+      const {
+        requests,
+        currentPage,
+        show: currentShow,
+        total,
+      } = await this.interventionService.getRequestBelongToHealthcare(user.id, {
+        startDate: startDate as string,
+        endDate: endDate as string,
+        status: status as REQUESTSTATUS,
+        page: page ? Number(page) : undefined,
+        show: show ? Number(show) : undefined,
+      });
       res.status(200).json({
         status: "Success",
         message: "Request retrieved",
         data: requests,
+        currentPage,
+        currentShow,
+        total,
       });
     } catch (err: any) {
       handleError(err, res);

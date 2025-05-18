@@ -310,6 +310,8 @@ export class InterventionService {
       startDate?: string;
       endDate?: string;
       status?: REQUESTSTATUS;
+      page?: number;
+      show?: number;
     }
   ) {
     const staff = await this.prismaClient.staff.findUnique({
@@ -323,6 +325,10 @@ export class InterventionService {
     }
     const startDate = query.startDate ? new Date(query.startDate) : undefined;
     const endDate = query.endDate ? new Date(query.endDate) : new Date();
+    const show = query.show ?? 10;
+    const page = query.page ?? 1;
+    const skip = show * (page - 1);
+    console.log({ skip });
 
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = startDate;
@@ -342,9 +348,21 @@ export class InterventionService {
             },
           },
         },
+        take: show,
+        skip,
       });
 
-    return { requests: healthCareRequest };
+    const whereFilter = {
+      puskesmas_id: staff.health_care_id,
+      ...(Object.keys(dateFilter).length && { created_at: dateFilter }),
+      ...(query.status && { status: query.status }),
+    };
+
+    const total = await this.prismaClient.requestIntervention.count({
+      where: whereFilter,
+    });
+
+    return { requests: healthCareRequest, currentPage: page, show, total };
   }
 
   async getRequestSummaryBelongToHeallthCare(userId: number) {
