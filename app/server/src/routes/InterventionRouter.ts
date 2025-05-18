@@ -11,7 +11,7 @@ export const interventionRouter = express.Router();
 
 interventionRouter.post(
   "/requests/:puskesmasId/members/:memberId",
-  AuthorizationMiddleware(["admin", "healthcare", "school", "uks"]),
+  AuthorizationMiddleware(["admin", "healthcare", "school", "uks", "teacher"]),
   async (req: Request, res: Response) => {
     interventionController.requestIntervention(req, res);
   }

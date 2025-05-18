@@ -293,11 +293,19 @@ export class InterventionService {
   }
 
   // GET WITH JWT
-  async getRequestBelongToHealthcare(puskesmasId: number) {
+  async getRequestBelongToHealthcare(userId: number) {
+    const staff = await this.prismaClient.staff.findUnique({
+      where: {
+        user_id: userId,
+      },
+    });
+    if (!staff) {
+      throw new NotFoundError("Staff not found");
+    }
     const healthCareRequest =
       await this.prismaClient.requestIntervention.findMany({
         where: {
-          puskesmas_id: puskesmasId,
+          puskesmas_id: staff?.health_care_id,
         },
         include: {
           family_member: true,

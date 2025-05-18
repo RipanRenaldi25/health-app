@@ -197,7 +197,7 @@ export class AuthService {
         data: {
           username,
           email,
-          password,
+          password: this.bcrypt.hashSync(password, 10),
           role_id: 6,
           is_verified: true,
         },
@@ -264,7 +264,7 @@ export class AuthService {
         data: {
           username,
           email,
-          password,
+          password: this.bcrypt.hashSync(password, 10),
           role_id: 7,
           is_verified: true,
         },

@@ -287,7 +287,7 @@ export class InterventionController {
   async getRequestBelongToHealthcare(req: Request, res: Response) {
     try {
       const user = (req as any).user;
-      const requests =
+      const { requests } =
         await this.interventionService.getRequestBelongToHealthcare(user.id);
       res.status(200).json({
         status: "Success",
