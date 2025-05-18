@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, REQUESTSTATUS } from "@prisma/client";
 import { IIntervention, IRequestIntervention } from "../types/puskesmas";
 import { NotFoundError } from "../common/exception";
 
@@ -293,19 +293,35 @@ export class InterventionService {
   }
 
   // GET WITH JWT
-  async getRequestBelongToHealthcare(userId: number, query: {}) {
+  async getRequestBelongToHealthcare(
+    userId: number,
+    query: {
+      startDate?: string;
+      endDate?: string;
+      status?: REQUESTSTATUS;
+    }
+  ) {
     const staff = await this.prismaClient.staff.findUnique({
       where: {
         user_id: userId,
       },
     });
+
     if (!staff) {
       throw new NotFoundError("Staff not found");
     }
+    const startDate = query.startDate ? new Date(query.startDate) : undefined;
+    const endDate = query.endDate ? new Date(query.endDate) : new Date();
+
+    const dateFilter: any = {};
+    if (startDate) dateFilter.gte = startDate;
+    if (endDate) dateFilter.lte = endDate;
     const healthCareRequest =
       await this.prismaClient.requestIntervention.findMany({
         where: {
-          puskesmas_id: staff?.health_care_id,
+          puskesmas_id: staff.health_care_id,
+          ...(Object.keys(dateFilter).length && { created_at: dateFilter }),
+          ...(query.status && { status: query.status }),
         },
         include: {
           family_member: true,
@@ -318,5 +334,50 @@ export class InterventionService {
       });
 
     return { requests: healthCareRequest };
+  }
+
+  async getRequestSummaryBelongToHeallthCare(userId: number) {
+    const user = await this.prismaClient.staff.findUnique({
+      where: {
+        user_id: userId,
+      },
+    });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    const totalRequest = await this.prismaClient.requestIntervention.count({
+      where: {
+        puskesmas_id: user.health_care_id,
+      },
+    });
+    const totalActions = await this.prismaClient.intervention.count({
+      where: {
+        puskesmas_id: user.health_care_id,
+      },
+    });
+    const totalPendingRequest =
+      await this.prismaClient.requestIntervention.count({
+        where: {
+          puskesmas_id: user.health_care_id,
+          status: "PENDING",
+        },
+      });
+
+    return {
+      totalRequest,
+      totalActions,
+      totalPendingRequest,
+    };
+  }
+
+  async getSchoolNutritionSummary(userId: number) {
+    const user = await this.prismaClient.staff.findUnique({
+      where: {
+        user_id: userId,
+      },
+    });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
   }
 }

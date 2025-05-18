@@ -6,6 +6,7 @@ import {
   createInterventionSchema,
   requestInterventionSchema,
 } from "../common/http/requestvalidator/InterventionValidator";
+import { REQUESTSTATUS } from "@prisma/client";
 
 export class InterventionController {
   constructor(public interventionService: InterventionService) {}
@@ -287,12 +288,38 @@ export class InterventionController {
   async getRequestBelongToHealthcare(req: Request, res: Response) {
     try {
       const user = (req as any).user;
+      const { startDate, endDate, status } = req.query;
       const { requests } =
-        await this.interventionService.getRequestBelongToHealthcare(user.id);
+        await this.interventionService.getRequestBelongToHealthcare(user.id, {
+          startDate: startDate as string,
+          endDate: endDate as string,
+          status: status as REQUESTSTATUS,
+        });
       res.status(200).json({
         status: "Success",
         message: "Request retrieved",
         data: requests,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getRequestSummaryBelongToHeallthCare(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const { totalActions, totalRequest, totalPendingRequest } =
+        await this.interventionService.getRequestSummaryBelongToHeallthCare(
+          user.id
+        );
+      res.status(200).json({
+        status: "Success",
+        message: "Request Summary retrieved",
+        data: {
+          totalAction: totalActions,
+          totalRequest,
+          totalPendingRequest,
+        },
       });
     } catch (err: any) {
       handleError(err, res);

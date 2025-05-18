@@ -114,3 +114,12 @@ interventionRouter.get(
     interventionController.getInterventionsBelongToPuskesmas(req, res);
   }
 );
+
+// Statistic
+interventionRouter.get(
+  "/statistics/requests/summary",
+  AuthorizationMiddleware(["staff-puskesmas", "healthcare"]),
+  (req: Request, res: Response) => {
+    interventionController.getRequestSummaryBelongToHeallthCare(req, res);
+  }
+);
