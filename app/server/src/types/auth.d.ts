@@ -31,4 +31,5 @@ export type Role =
   | "parent"
   | "healthcare"
   | "uks"
-  | "teacher";
+  | "teacher"
+  | "staff-puskesmas"

@@ -31,11 +31,20 @@ authRouter.post("/register/parent", async (req, res) => {
 });
 
 authRouter.post(
-  "/register/teacher/schools/:schoolId",
+  "/register/schools/:schoolId/teacher",
   AuthorizationMiddleware([]),
   multerMiddleware.single("avatar"),
   async (req, res) => {
     authController.registerForTeacher(req, res);
+  }
+);
+
+authRouter.post(
+  "/register/healthcares/:healthCareId/staff",
+  AuthorizationMiddleware([]),
+  multerMiddleware.single("avatar"),
+  async (req, res) => {
+    authController.registerForStaff(req, res);
   }
 );
 

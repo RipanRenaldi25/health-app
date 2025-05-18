@@ -91,6 +91,34 @@ export class AuthController {
     }
   }
 
+  async registerForStaff(req: Request, res: Response) {
+    try {
+      const { healthCareId } = req.params;
+      if (!healthCareId) {
+        throw new InvariantError("schoolId is required in params");
+      }
+      validatePayload(registerTeacherSchema, req.body);
+      const { username, password, email, name } = req.body;
+      const file = req.file;
+      const { staff } = await this.authService.registerForStaff({
+        username,
+        email,
+        password,
+        healthCareId: +healthCareId,
+        name,
+        avatar: file?.originalname ?? undefined,
+      });
+
+      res.status(201).json({
+        status: "Success",
+        message: "User Registered Successfully",
+        data: staff,
+      });
+    } catch (error: any) {
+      handleError(error, res);
+    }
+  }
+
   async registerForInstitution(req: Request, res: Response) {
     try {
       validatePayload(institutionRegisterPayloadSchema, req.body);

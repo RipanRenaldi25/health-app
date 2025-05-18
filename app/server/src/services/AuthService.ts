@@ -219,6 +219,73 @@ export class AuthService {
     return { teacher };
   }
 
+  async registerForStaff({
+    username,
+    email,
+    password,
+    healthCareId,
+    name,
+    avatar,
+  }: {
+    username: string;
+    email: string;
+    password: string;
+    healthCareId: number;
+    name: string;
+    avatar?: string;
+  }) {
+    const healthCare = await this.prismaClient.institution.findUnique({
+      where: {
+        id: healthCareId,
+        type: 2,
+      },
+    });
+
+    if (!healthCare) {
+      throw new NotFoundError(`School with id ${healthCare} is not found`);
+    }
+    const staff = await this.prismaClient.$transaction(async (trx) => {
+      const isUserExist = await trx.user.findFirst({
+        where: {
+          OR: [
+            {
+              username,
+            },
+            {
+              email,
+            },
+          ],
+        },
+      });
+      if (isUserExist) {
+        throw new AuthorizationError("User is already exists");
+      }
+      const user = await trx.user.create({
+        data: {
+          username,
+          email,
+          password,
+          role_id: 7,
+          is_verified: true,
+        },
+      });
+
+      const staff = await trx.staff.create({
+        data: {
+          name,
+          avatar,
+          user_id: user.id,
+          health_care_id: healthCareId,
+        },
+        include: {
+          user: true,
+        },
+      });
+      return staff;
+    });
+    return { staff };
+  }
+
   async sendEmailVerification(email: string) {
     const { user } = await this.getUserByUniqueIdentity(email);
     const generatedToken = this.jwt.sign(

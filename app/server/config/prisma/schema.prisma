@@ -47,6 +47,7 @@ model User {
   approval             UKSActivityApproval[]
   request_intervention RequestIntervention[]
   teacher Teacher?
+  staff Staff?
   family Family?
 
   @@map("users")
@@ -82,6 +83,8 @@ model Institution {
   responses                Response[]
   students Student[]
   teachers Teacher[]
+  staffs Staff[]
+
   class_histories StudentClassHistory[]
   teacher_histories TeacherHistory[]
   class_categories ClassCategoryOnClass[]
@@ -811,4 +814,19 @@ model TeacherHistory {
 
   @@unique([class_id, school_year])
   @@map("teacher_histories")
+}
+
+
+model Staff {
+  id Int @db.Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  user_id Int @db.Int @unique()
+  health_care_id Int @db.Int
+  avatar String? @db.VarChar(255)
+
+  user User @relation(fields: [user_id], references: [id])
+  institution Institution @relation(fields: [health_care_id], references: [id])
+
+
+  @@map("staffs")
 }
