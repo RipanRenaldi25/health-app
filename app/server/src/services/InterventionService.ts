@@ -1,6 +1,6 @@
 import { PrismaClient, REQUESTSTATUS } from "@prisma/client";
-import { IIntervention, IRequestIntervention } from "../types/puskesmas";
 import { NotFoundError } from "../common/exception";
+import { IIntervention, IRequestIntervention } from "../types/puskesmas";
 
 export class InterventionService {
   constructor(public prismaClient: PrismaClient) {}
@@ -15,12 +15,23 @@ export class InterventionService {
     if (!puskesmas) {
       throw new NotFoundError("Puskesmas not found");
     }
+    const teacher = await this.prismaClient.teacher.findUnique({
+      where: {
+        user_id: payload.createdBy,
+      },
+    });
+    if (!teacher) {
+      throw new NotFoundError(
+        "Cannot create request because user is not a teacher"
+      );
+    }
     const intervention = await this.prismaClient.requestIntervention.create({
       data: {
         puskesmas_id: payload.institutionId,
         created_by: payload.createdBy,
         family_member_id: payload.familyId,
         information: payload.information,
+        school_id: teacher.school_id,
       },
       include: {
         institution: true,
