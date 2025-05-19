@@ -332,7 +332,6 @@ export class InterventionService {
     const show = query.show ?? 10;
     const page = query.page ?? 1;
     const skip = show * (page - 1);
-    console.log({ skip });
 
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = startDate;
@@ -346,7 +345,9 @@ export class InterventionService {
           ...(query.nis && {
             family_member: {
               student: {
-                nis: query.nis,
+                nis: {
+                  contains: query.nis,
+                },
               },
             },
           }),
@@ -355,6 +356,12 @@ export class InterventionService {
           family_member: {
             include: {
               student: true,
+              nutrition: {
+                orderBy: {
+                  created_at: "desc"
+                },
+                take: 1
+              }
             },
           },
           institution: true,
