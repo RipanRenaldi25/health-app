@@ -312,6 +312,8 @@ export class InterventionService {
       status?: REQUESTSTATUS;
       page?: number;
       show?: number;
+      sortedByDate?: "asc" | "desc";
+      nis?: string;
     }
   ) {
     const staff = await this.prismaClient.staff.findUnique({
@@ -324,7 +326,9 @@ export class InterventionService {
       throw new NotFoundError("Staff not found");
     }
     const startDate = query.startDate ? new Date(query.startDate) : undefined;
-    const endDate = query.endDate ? new Date(query.endDate) : new Date();
+    const endDate = query.endDate
+      ? new Date(new Date(query.endDate).setHours(23, 59, 59, 999))
+      : undefined;
     const show = query.show ?? 10;
     const page = query.page ?? 1;
     const skip = show * (page - 1);
@@ -339,9 +343,20 @@ export class InterventionService {
           puskesmas_id: staff.health_care_id,
           ...(Object.keys(dateFilter).length && { created_at: dateFilter }),
           ...(query.status && { status: query.status }),
+          ...(query.nis && {
+            family_member: {
+              student: {
+                nis: query.nis,
+              },
+            },
+          }),
         },
         include: {
-          family_member: true,
+          family_member: {
+            include: {
+              student: true,
+            },
+          },
           institution: true,
           user: {
             include: {
@@ -353,6 +368,9 @@ export class InterventionService {
         },
         take: show,
         skip,
+        orderBy: {
+          created_at: query.sortedByDate ?? "asc",
+        },
       });
 
     const whereFilter = {
@@ -396,9 +414,9 @@ export class InterventionService {
       });
 
     return {
-      totalRequest,
-      totalActions,
-      totalPendingRequest,
+      request: totalRequest,
+      action: totalActions,
+      pending: totalPendingRequest,
     };
   }
 
@@ -420,23 +438,29 @@ export class InterventionService {
       .filter(Boolean);
 
     const nutritions: any[] = await this.prismaClient.$queryRaw`
-      SELECT n.status_id, CASE
+  SELECT 
+    DATE_FORMAT(n.created_at, '%M') AS bulan,
+    n.status_id,
+    CASE
       WHEN n.status_id = 1 THEN "Kekurangan Gizi Tingkat Berat"
       WHEN n.status_id = 2 THEN "Kekurangan Gizi Tingkat Ringan"
       WHEN n.status_id = 3 THEN "Gizi Normal"
       WHEN n.status_id = 4 THEN "Beresiko Kelebihan Gizi Tingkat Ringan"
       WHEN n.status_id = 5 THEN "Beresiko Kelebihan Gizi Tingkat Berat"
       ELSE "Tidak Diketahui"
-      END AS "nutrition_status",
-      COUNT(n.id) as total
-      FROM nutritions as n
-      JOIN family_members fm ON n.family_member_id = fm.id
-      JOIN institutions i ON fm.institution_id = i.id
-      JOIN families f ON fm.family_id = f.id
-      JOIN users u ON f.user_id = u.id
-      WHERE i.id IN (${Prisma.join(schoolIds)})
-      GROUP BY n.status_id
-      `;
+    END AS nutrition_status,
+    COUNT(n.id) AS total
+  FROM nutritions AS n
+  JOIN family_members fm ON n.family_member_id = fm.id
+  JOIN students as s ON fm.id = s.family_member_id
+  JOIN institutions i ON fm.institution_id = i.id
+  JOIN families f ON fm.family_id = f.id
+  JOIN users u ON f.user_id = u.id
+  WHERE i.id IN (${Prisma.join(schoolIds)})
+    AND n.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+  GROUP BY bulan, n.status_id
+  ORDER BY bulan ASC;
+`;
 
     //     const nutritions = await this.prismaClient.$queryRawUnsafe(`
     //   SELECT

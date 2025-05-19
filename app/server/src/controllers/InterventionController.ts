@@ -288,7 +288,8 @@ export class InterventionController {
   async getRequestBelongToHealthcare(req: Request, res: Response) {
     try {
       const user = (req as any).user;
-      const { startDate, endDate, status, page, show } = req.query;
+      const { startDate, endDate, status, page, show, sortedByDate, nis } =
+        req.query;
       const {
         requests,
         currentPage,
@@ -300,6 +301,8 @@ export class InterventionController {
         status: status as REQUESTSTATUS,
         page: page ? Number(page) : undefined,
         show: show ? Number(show) : undefined,
+        sortedByDate: (sortedByDate as any) ? (sortedByDate as any) : "asc",
+        nis: nis as string,
       });
       res.status(200).json({
         status: "Success",
@@ -317,7 +320,7 @@ export class InterventionController {
   async getRequestSummaryBelongToHeallthCare(req: Request, res: Response) {
     try {
       const user = (req as any).user;
-      const { totalActions, totalRequest, totalPendingRequest } =
+      const { action, request, pending } =
         await this.interventionService.getRequestSummaryBelongToHeallthCare(
           user.id
         );
@@ -325,9 +328,9 @@ export class InterventionController {
         status: "Success",
         message: "Request Summary retrieved",
         data: {
-          totalAction: totalActions,
-          totalRequest,
-          totalPendingRequest,
+          request,
+          pending,
+          action,
         },
       });
     } catch (err: any) {
